@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CodeMentor IA - Mini VS Code</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  
+  <style>
+    body { font-family: 'Segoe UI', system-ui, monospace; }
+    
+    #editor {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      font-family: ui-monospace, 'Cascadia Mono', 'Segoe UI Mono', monospace;
+      font-size: 15px;
+      line-height: 1.5;
+      padding: 20px;
+      border-radius: 12px;
+      min-height: 320px;
+      outline: none;
+      resize: vertical;
+      overflow: auto;
+      white-space: pre;
+      tab-size: 4;
+    }
+
+    .log-entry {
+      transition: all 0.2s;
+    }
+    
+    .feedback-btn {
+      transition: all 0.2s;
+    }
+    .feedback-btn.active {
+      color: #22c55e;
+      transform: scale(1.1);
+    }
+  </style>
+</head>
+<body class="bg-zinc-950 text-zinc-100 min-h-screen">
+
+<div class="max-w-7xl mx-auto p-4 md:p-6">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+    <div>
+      <h1 class="text-3xl font-bold text-green-400 flex items-center gap-3">
+        <i class="fas fa-code"></i>
+        CodeMentor IA
+      </h1>
+      <p class="text-zinc-400 text-sm">Mini VS Code com análise inteligente</p>
+    </div>
+    
+    <div class="flex gap-3">
+      <button onclick="limparEditor()" 
+              class="flex items-center gap-2 px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 rounded-xl transition">
+        <i class="fas fa-trash"></i>
+        <span>Limpar</span>
+      </button>
+      <button onclick="analisar()" 
+              class="flex items-center gap-2 px-6 py-2.5 bg-green-600 hover:bg-green-500 font-medium rounded-xl transition">
+        <i class="fas fa-play"></i>
+        <span>Analisar Código</span>
+      </button>
+        <button onclick="mostrarDataset()" 
+          class="flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-500 font-medium rounded-xl transition">
+    <i class="fas fa-database"></i>
+    <span>Ver Dataset</span>
+  </button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- Editor -->
+    <div class="lg:col-span-7">
+      <div class="flex items-center justify-between mb-3 px-1">
+        <select id="lang" onchange="mudarLinguagem()" 
+                class="bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-green-500">
+          <option value="python">Python</option>
+          <option value="js">JavaScript</option>
+          <option value="html">HTML</option>
+          <option value="sql">SQL</option>
+          <option value="csharp">C#</option>
+          <option value="json">JSON</option>
+        </select>
+        
+        <div class="text-xs text-zinc-500 flex items-center gap-2">
+          <span id="charCount">0 caracteres</span>
+        </div>
+      </div>
+      
+      <div id="editor" contenteditable="true" spellcheck="false"
+           oninput="atualizarContagem()"
+           class="shadow-2xl border border-zinc-800 focus:border-green-500">
+Digite ou cole seu código aqui...
+      </div>
+    </div>
+
+    <!-- Painel Direito -->
+    <div class="lg:col-span-5 space-y-6">
+      
+      <!-- Resultado -->
+      <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 min-h-[300px]">
+        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+          <i class="fas fa-clipboard-check"></i>
+          Resultado da Análise
+        </h3>
+        <div id="resultado" class="text-sm leading-relaxed"></div>
+      </div>
+
+      <!-- Feedback -->
+      <div id="feedbackSection" class="hidden bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+        <h3 class="text-lg font-semibold mb-4">Essa análise foi útil?</h3>
+        <div class="flex gap-4">
+          <button onclick="darFeedback(1)" id="btnLike"
+                  class="feedback-btn flex-1 flex items-center justify-center gap-3 py-4 bg-zinc-800 hover:bg-emerald-950 rounded-2xl text-4xl">
+            👍
+          </button>
+          <button onclick="darFeedback(0)" id="btnDislike"
+                  class="feedback-btn flex-1 flex items-center justify-center gap-3 py-4 bg-zinc-800 hover:bg-red-950 rounded-2xl text-4xl">
+            👎
+          </button>
+        </div>
+      </div>
+
+      <!-- Logs -->
+      <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-semibold flex items-center gap-2">
+            <i class="fas fa-history"></i>
+            Histórico de Análises
+          </h3>
+          <button onclick="limparLogs()" class="text-xs text-zinc-400 hover:text-red-400">
+            Limpar logs
+          </button>
+        </div>
+        
+        <div id="logs" class="space-y-3 max-h-96 overflow-auto text-sm pr-2 custom-scroll">
+          <!-- Logs serão inseridos aqui via JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+// ==================== CONFIGURAÇÃO ====================
+let logs = JSON.parse(localStorage.getItem('codeLogs')) || [];
+let currentAnalysisId = null;
+
+// ==================== DATASET AUTOMÁTICO (5000 LINHAS) ====================
+let dataset = [];
+
+function gerarDataset() {
+  const nomes = ["Ana", "Carlos", "Marina", "João", "Lucas", "Fernanda", "Pedro", "Juliana", "Rafael", "Camila"];
+  const sobrenomes = ["Silva", "Souza", "Oliveira", "Santos", "Pereira", "Costa", "Rodrigues", "Almeida"];
+  const cidades = ["Brasília", "Goiânia", "São Paulo", "Rio de Janeiro", "Salvador", "Curitiba"];
+
+  for (let i = 1; i <= 5000; i++) {
+    const nomeCompleto =
+      nomes[Math.floor(Math.random() * nomes.length)] + " " +
+      sobrenomes[Math.floor(Math.random() * sobrenomes.length)];
+
+    dataset.push({
+      id: i,
+      nome: nomeCompleto,
+      idade: Math.floor(Math.random() * 43) + 18,
+      cidade: cidades[Math.floor(Math.random() * cidades.length)],
+      nota: (Math.random() * 5 + 5).toFixed(1)
+    });
+  }
+}
+
+// ==================== TAILWIND + RESPONSIVIDADE ====================
+function initTailwind() {
+  // Já está usando CDN, mas podemos adicionar mais classes dinamicamente se precisar
+}
+
+// ==================== EDITOR ====================
+function atualizarContagem() {
+  const editor = document.getElementById('editor');
+  const count = editor.innerText.length;
+  document.getElementById('charCount').textContent = `${count} caracteres`;
+}
+
+function limparEditor() {
+  if (confirm('Limpar todo o código?')) {
+    document.getElementById('editor').innerHTML = 'Digite ou cole seu código aqui...';
+    atualizarContagem();
+  }
+}
+
+function mudarLinguagem() {
+  // Pode adicionar placeholder diferente por linguagem no futuro
+  atualizarContagem();
+}
+
+// ==================== ANÁLISE (melhorada) ====================
+function detectWrongLanguage(code, lang) {
+  const lower = code.toLowerCase();
+  
+  if (lang === "html" && !code.includes("<")) return true;
+  if (lang === "python" && (code.includes("{") || code.includes("console.log"))) return true;
+  if (lang === "js" && (lower.includes("def ") || lower.includes("print("))) return true;
+  if (lang === "sql" && !lower.match(/select|insert|update|delete|create|alter|drop/i)) return true;
+  return false;
+}
+
+
+//segunda parte da analizacao de erros do codigo e suas linguagens oara detequitar erros
+function analyzeCode(code, lang) {
+  let errors = [];
+  let suggestions = [];
+
+  if (!code.trim()) {
+    errors.push("Código vazio");
+    return { errors, suggestions };
+  }
+
+  // ==================== ERROS GERAIS ====================
+  if ((code.match(/\(/g) || []).length !== (code.match(/\)/g) || []).length) {
+    errors.push("Parênteses desbalanceados");
+  }
+
+  if ((code.match(/{/g) || []).length !== (code.match(/}/g) || []).length) {
+    errors.push("Chaves {} desbalanceadas");
+  }
+
+  if ((code.match(/\[/g) || []).length !== (code.match(/\]/g) || []).length) {
+    errors.push("Colchetes [] desbalanceados");
+  }
+
+  if ((code.match(/"/g) || []).length % 2 !== 0 || (code.match(/'/g) || []).length % 2 !== 0) {
+    errors.push("Aspas não fechadas");
+  }
+
+  // ==================== LINGUAGEM ERRADA ====================
+  if (detectWrongLanguage(code, lang)) {
+    errors.push("A linguagem selecionada não corresponde ao código.");
+  }
+
+  // ==================== PYTHON ====================
+  if (lang === "python") {
+    const funcoes = code.match(/[a-zA-Z_]+\(/g);
+
+    if (funcoes) {
+      const validas = ["print(", "input(", "len(", "range("];
+
+      funcoes.forEach(f => {
+        if (!validas.includes(f)) {
+          errors.push(`Função inválida ou desconhecida: ${f}`);
+        }
+      });
+    }
+  }
+
+  // ==================== JAVASCRIPT ====================
+  if (lang === "js") {
+    try {
+      new Function(code);
+    } catch {
+      errors.push("Erro de sintaxe JavaScript");
+    }
+  }
+
+  // ==================== HTML ====================
+  if (lang === "html") {
+    const openTags = (code.match(/<[^/!][^>]*>/g) || []).length;
+    const closeTags = (code.match(/<\/[^>]+>/g) || []).length;
+
+    if (openTags !== closeTags) {
+      errors.push("Tags HTML não fechadas corretamente");
+    }
+  }
+
+  // ==================== SQL ====================
+  if (lang === "sql") {
+    const lower = code.toLowerCase();
+
+    if (lower.includes("select") && !lower.includes("from")) {
+      errors.push("SELECT sem FROM");
+    }
+
+    if (!lower.match(/select|insert|update|delete|create|drop/i)) {
+      errors.push("Comando SQL inválido");
+    }
+  }
+
+  // ==================== JSON ====================
+  if (lang === "json") {
+    try {
+      JSON.parse(code);
+    } catch {
+      errors.push("JSON inválido");
+    }
+  }
+
+  // ==================== C# ====================
+  if (lang === "csharp") {
+    if (!code.includes(";")) {
+      errors.push("Falta ';' no final das instruções");
+    }
+
+    if (!code.includes("class")) {
+      errors.push("Estrutura C# incompleta");
+    }
+  }
+
+  // ==================== VALIDAÇÃO FINAL ====================
+  
+  // ==================== DETECTAR TEXTO QUE NÃO É CÓDIGO ====================
+const soTexto = /^[a-zA-Z\s]+$/.test(code);
+
+if (soTexto) {
+  errors.push("Isso não parece ser um código válido.");
+  suggestions.push("Digite um código na linguagem selecionada.");
+}
+  if (errors.length === 0) {
+    return { errors, suggestions };
+  }
+
+  return { errors, suggestions };
+}
+
+// ==================== MOSTRAR DATASET ====================
+function mostrarDataset() {
+  const resultadoDiv = document.getElementById('resultado');
+
+  let html = `<p class="text-green-400 mb-3">📊 Dataset (${dataset.length} registros)</p>`;
+  html += `<div class="max-h-64 overflow-auto text-xs">`;
+
+  dataset.slice(0, 20).forEach(item => {
+    html += `
+      <div class="border-b border-zinc-700 py-1">
+        ${item.id} - ${item.nome} (${item.idade}) - ${item.cidade} - Nota: ${item.nota}
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+  html += `<p class="text-zinc-500 mt-2 text-xs">Mostrando apenas 20 de 5000 registros</p>`;
+
+  resultadoDiv.innerHTML = html;
+}
+
+// ==================== LOGS ====================
+function salvarLog(lang, codeSnippet, errors, suggestions) {
+  const log = {
+    id: Date.now(),
+    date: new Date().toLocaleString('pt-BR'),
+    lang: lang.toUpperCase(),
+    snippet: codeSnippet.substring(0, 80) + (codeSnippet.length > 80 ? '...' : ''),
+    errors: errors.length,
+    suggestions: suggestions.length,
+    status: errors.length === 0 ? '✅ Válido' : '❌ Com erros'
+  };
+
+  logs.unshift(log);
+  if (logs.length > 50) logs.pop(); // mantém apenas os 50 últimos
+
+  localStorage.setItem('codeLogs', JSON.stringify(logs));
+  renderLogs();
+}
+
+function renderLogs() {
+  const container = document.getElementById('logs');
+  container.innerHTML = '';
+
+  if (logs.length === 0) {
+    container.innerHTML = `<p class="text-zinc-500 text-center py-8">Nenhuma análise ainda...</p>`;
+    return;
+  }
+
+  logs.forEach(log => {
+    const div = document.createElement('div');
+    div.className = `log-entry bg-zinc-800 border border-zinc-700 rounded-xl p-4 text-xs hover:border-green-500 cursor-pointer`;
+    div.innerHTML = `
+      <div class="flex justify-between">
+        <span class="font-mono text-green-400">${log.lang}</span>
+        <span class="text-zinc-500">${log.date}</span>
+      </div>
+      <p class="text-zinc-400 mt-1 line-clamp-1">${log.snippet}</p>
+      <div class="flex gap-3 mt-3 text-[10px]">
+        <span class="${log.errors === 0 ? 'text-emerald-400' : 'text-red-400'}">${log.status}</span>
+        <span>${log.errors} erro${log.errors !== 1 ? 's' : ''}</span>
+      </div>
+    `;
+    div.onclick = () => alert(`Análise de ${log.date}\n\n${log.snippet}`);
+    container.appendChild(div);
+  });
+}
+
+function limparLogs() {
+  if (confirm('Limpar todo o histórico?')) {
+    logs = [];
+    localStorage.removeItem('codeLogs');
+    renderLogs();
+  }
+}
+
+// ==================== FEEDBACK ====================
+function mostrarFeedback() {
+  document.getElementById('feedbackSection').classList.remove('hidden');
+  // Reset buttons
+  document.getElementById('btnLike').classList.remove('active');
+  document.getElementById('btnDislike').classList.remove('active');
+}
+
+function darFeedback(valor) { // 1 = bom, 0 = ruim
+  const likeBtn = document.getElementById('btnLike');
+  const dislikeBtn = document.getElementById('btnDislike');
+
+  if (valor === 1) {
+    likeBtn.classList.add('active');
+    dislikeBtn.classList.remove('active');
+  } else {
+    dislikeBtn.classList.add('active');
+    likeBtn.classList.remove('active');
+  }
+
+  // Aqui você pode enviar para um backend no futuro
+  console.log(`Feedback recebido: ${valor === 1 ? '👍 Positivo' : '👎 Negativo'} (ID: ${currentAnalysisId})`);
+  
+  setTimeout(() => {
+    alert('Obrigado pelo feedback! 🙌');
+  }, 300);
+}
+
+// ==================== FUNÇÃO PRINCIPAL ====================
+function analisar() {
+  const editor = document.getElementById('editor');
+  let code = editor.innerText.trim();
+  const lang = document.getElementById('lang').value;
+  const resultadoDiv = document.getElementById('resultado');
+
+  if (!code || code === 'Digite ou cole seu código aqui...') {
+    resultadoDiv.innerHTML = `
+      <div class="text-amber-400 flex items-center gap-3">
+        <i class="fas fa-exclamation-triangle text-2xl"></i>
+        <span>Digite ou cole algum código para analisar.</span>
+      </div>`;
+    return;
+  }
+
+  // Loading
+  resultadoDiv.innerHTML = `
+    <div class="flex items-center gap-3 text-zinc-400">
+      <i class="fas fa-spinner fa-spin"></i>
+      <span>Analisando código...</span>
+    </div>`;
+
+  // Simula delay de análise (IA)
+  setTimeout(() => {
+    const { errors, suggestions } = analyzeCode(code, lang);
+
+    currentAnalysisId = Date.now();
+
+    let html = '';
+
+    if (errors.length === 0) {
+      html = `
+        <div class="flex items-center gap-3 text-emerald-400 mb-6">
+          <i class="fas fa-check-circle text-3xl"></i>
+          <div>
+            <p class="font-semibold text-lg">Código válido!</p>
+            <p class="text-sm text-zinc-400">Nenhum erro detectado.</p>
+          </div>
+        </div>`;
+    } else {
+      html = `<p class="text-red-400 font-medium mb-4">❌ Foram encontrados ${errors.length} problema(s):</p>
+              <ul class="space-y-2 mb-6">`;
+      errors.forEach(err => {
+        html += `<li class="flex gap-2"><span class="text-red-500">•</span> ${err}</li>`;
+      });
+      html += `</ul>`;
+    }
+
+    if (suggestions.length > 0) {
+      html += `<p class="text-amber-400 font-medium mb-3">💡 Sugestões:</p>
+               <ul class="space-y-2 text-sm">`;
+      suggestions.forEach(s => {
+        html += `<li class="flex gap-2"><span class="text-amber-400">→</span> ${s}</li>`;
+      });
+      html += `</ul>`;
+    }
+
+    resultadoDiv.innerHTML = html;
+
+    // Salvar log
+    salvarLog(lang, code, errors, suggestions);
+
+    // Mostrar feedback
+    mostrarFeedback();
+
+  }, 650);
+}
+
+// ==================== INICIALIZAÇÃO ====================
+window.onload = () => {
+  initTailwind();
+  renderLogs();
+  atualizarContagem();
+  
+  gerarDataset(); // 🔥 gera os 5000 dados
+  console.log("Dataset pronto:", dataset.length);
+  console.log(dataset[0]); // teste
+  
+  // Atalho Ctrl/Cmd + Enter para analisar
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      analisar();
+    }
+  });
+};
+</script>
+
+<style>
+  .custom-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scroll::-webkit-scrollbar-thumb {
+    background: #4b5563;
+    border-radius: 20px;
+  }
+  .line-clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>
+
+</body>
+</html>
