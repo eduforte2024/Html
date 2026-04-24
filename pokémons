@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Pokedex Insana</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial;
+      text-align: center;
+      background: #1e1e2f;
+      color: white;
+      transition: 0.3s;
+    }
+
+    h1 {
+      margin-top: 20px;
+    }
+
+    .container {
+      padding: 20px;
+    }
+
+    input {
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      margin: 5px;
+    }
+
+    button {
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      margin: 5px;
+      cursor: pointer;
+      background: #444;
+      color: white;
+    }
+
+    button:hover {
+      background: #666;
+    }
+
+    img {
+      width: 150px;
+      height: 150px;
+    }
+
+    .card {
+      margin-top: 20px;
+    }
+
+    .section {
+      margin-top: 20px;
+    }
+
+    .log {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>POKÉDEX</h1>
+
+<div class="container">
+
+  <!-- BUSCA -->
+  <input id="search" placeholder="Buscar Pokémon">
+  <button onclick="searchPokemon()">Buscar</button>
+
+  <!-- LOADING -->
+  <p id="loading"></p>
+
+  <!-- CARD -->
+  <div class="card">
+    <img id="img">
+    <h2 id="name"></h2>
+    <p id="id"></p>
+    <p id="type"></p>
+  </div>
+
+  <!-- BOTÕES -->
+  <div>
+    <button onclick="prev()">◀</button>
+    <button onclick="home()">🏠</button>
+    <button onclick="next()">▶</button>
+    <button onclick="random()">🎲</button>
+    <button onclick="favorite()">⭐</button>
+  </div>
+
+  <!-- FAVORITOS -->
+  <div class="section">
+    <h3>⭐ Favoritos</h3>
+    <p id="favorites"></p>
+  </div>
+
+  <!-- LOGS -->
+  <div class="section">
+    <h3>📝 Logs</h3>
+    <div id="logs"></div>
+  </div>
+
+  <!-- FEEDBACK -->
+  <div class="section">
+    <h3>💬 Feedback</h3>
+    <input id="feedback" placeholder="Digite algo...">
+    <button onclick="sendFeedback()">Enviar</button>
+  </div>
+
+</div>
+
+<script>
+let id = 1;
+let favorites = [];
+let logs = [];
+
+const colors = {
+  fire: "#ff6b6b",
+  water: "#3498db",
+  grass: "#2ecc71",
+  electric: "#f1c40f",
+  psychic: "#9b59b6",
+  normal: "#95a5a6"
+};
+
+function addLog(msg) {
+  logs.push(msg);
+  if (logs.length > 5) logs.shift();
+
+  document.getElementById("logs").innerHTML =
+    logs.map(l => `<div class="log">${l}</div>`).join("");
+}
+
+async function fetchPokemon(value) {
+  try {
+    document.getElementById("loading").innerText = "Carregando...";
+
+    const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${value}`);
+    const data = await res.json();
+
+    id = data.id;
+
+    document.getElementById("name").innerText = data.name.toUpperCase();
+    document.getElementById("img").src = data.sprites.front_default;
+    document.getElementById("id").innerText = "ID: " + data.id;
+
+    const t1 = data.types[0].type.name;
+    const t2 = data.types[1]?.type.name;
+
+    document.getElementById("type").innerText =
+      t1 + (t2 ? " / " + t2 : "");
+
+    document.body.style.background = colors[t1] || "#1e1e2f";
+
+    addLog("Carregado: " + data.name);
+
+  } catch {
+    alert("Pokémon não encontrado");
+    addLog("Erro na busca");
+  } finally {
+    document.getElementById("loading").innerText = "";
+  }
+}
+
+function next() {
+  id++;
+  fetchPokemon(id);
+}
+
+function prev() {
+  if (id > 1) {
+    id--;
+    fetchPokemon(id);
+  }
+}
+
+function home() {
+  id = 1;
+  fetchPokemon(id);
+}
+
+function random() {
+  id = Math.floor(Math.random() * 1000) + 1;
+  fetchPokemon(id);
+}
+
+function searchPokemon() {
+  const value = document.getElementById("search").value.toLowerCase();
+  if (value) {
+    fetchPokemon(value);
+    addLog("Busca: " + value);
+  }
+}
+
+function favorite() {
+  const name = document.getElementById("name").innerText;
+
+  if (!favorites.includes(name)) {
+    favorites.push(name);
+    addLog("Favorito: " + name);
+  }
+
+  document.getElementById("favorites").innerText = favorites.join(", ");
+}
+
+function sendFeedback() {
+  const fb = document.getElementById("feedback").value;
+  addLog("Feedback: " + fb);
+  document.getElementById("feedback").value = "";
+}
+
+// iniciar
+fetchPokemon(1);
+</script>
+
+</body>
+</html>
