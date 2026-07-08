@@ -3,14 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minha Lista de Animes</title>
+    <title>Meu Universo Anime</title>
     <style>
         :root {
-            --bg-color: #121214;
-            --card-bg: #202024;
-            --primary-color: #8257e5;
-            --text-color: #e1e1e6;
-            --text-muted: #a8a8b3;
+            --bg-color: #0b0b0d;
+            --card-bg: #151518;
+            --primary-color: #ff4757;
+            --secondary-color: #2ed573;
+            --warn-color: #ffa502;
+            --text-color: #ffffff;
+            --text-muted: #a4b0be;
         }
 
         * {
@@ -24,49 +26,136 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             padding: 20px;
+            overflow-x: hidden;
         }
 
         header {
             text-align: center;
-            margin-bottom: 30px;
+            margin: 20px 0 30px 0;
         }
 
         header h1 {
             color: var(--primary-color);
-            margin-bottom: 20px;
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 15px rgba(255, 71, 87, 0.4);
         }
 
-        /* Controles (Abas e Filtros) */
-        .controls {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+        /* Seções de Controle e Cadastro */
+        .manager-container {
             max-width: 1200px;
             margin: 0 auto 30px auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .panel {
             background: var(--card-bg);
-            padding: 15px;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            border: 1px solid #1e1e24;
+        }
+
+        .panel h2 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Formulário de Adicionar */
+        .add-form {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .form-group.short {
+            flex-grow: 0;
+            min-width: 100px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            height: 40px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .checkbox-group input {
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+        }
+
+        label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* Botões Gerais */
+        .btn-submit {
+            background: var(--secondary-color);
+            color: #000;
+            border: none;
+            padding: 10px 20px;
             border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            height: 41px;
+            transition: all 0.2s;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(46, 213, 115, 0.3);
         }
 
         .tabs {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             flex-wrap: wrap;
+            margin-bottom: 15px;
         }
 
         .tab-btn {
-            background: #29292e;
-            color: var(--text-color);
+            background: #232329;
+            color: var(--text-muted);
             border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 12px 24px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
-            transition: 0.2s;
+            font-size: 0.95rem;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
-        .tab-btn.active, .tab-btn:hover {
+        .tab-btn.active {
             background: var(--primary-color);
+            color: white;
+            box-shadow: 0 0 15px rgba(255, 71, 87, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: #2d2d35;
+            color: var(--text-color);
         }
 
         .filters {
@@ -76,44 +165,75 @@
             flex-wrap: wrap;
         }
 
-        select, input {
-            background: #29292e;
+        select, input[type="text"], input[type="number"] {
+            background: #232329;
             color: var(--text-color);
-            border: 1px solid #4d4d57;
-            padding: 8px;
-            border-radius: 5px;
+            border: 1px solid #32323d;
+            padding: 10px 15px;
+            border-radius: 8px;
             outline: none;
+            font-size: 0.9rem;
+            transition: border-color 0.3s;
+            height: 41px;
+        }
+
+        select:focus, input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .search-input {
+            flex-grow: 1;
         }
 
         /* Grade de Animes */
         .anime-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 25px;
             max-width: 1200px;
             margin: 0 auto;
         }
 
+        /* Card de Anime */
         .anime-card {
             background: var(--card-bg);
-            border-radius: 8px;
-            padding: 15px;
+            border-radius: 12px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            border: 1px solid #29292e;
-            transition: transform 0.2s;
+            border: 1px solid #232329;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: fadeIn 0.5s ease forwards;
+            opacity: 0;
+            transform: translateY(20px);
         }
 
         .anime-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-8px) scale(1.02);
             border-color: var(--primary-color);
+            box-shadow: 0 12px 24px rgba(255, 71, 87, 0.15);
+        }
+
+        /* Animações */
+        @keyframes fadeIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeOut {
+            to { opacity: 0; transform: scale(0.8); }
+        }
+
+        .anime-card.removing {
+            animation: fadeOut 0.3s ease forwards;
         }
 
         .anime-title {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             font-weight: bold;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            line-height: 1.4;
         }
 
         .anime-info {
@@ -121,23 +241,64 @@
             color: var(--text-muted);
         }
 
+        .badge-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            gap: 10px;
+        }
+
         .badge {
-            display: inline-block;
-            padding: 2px 6px;
-            background: #29292e;
-            border-radius: 4px;
+            padding: 4px 8px;
+            background: #232329;
+            border-radius: 6px;
             font-size: 0.8rem;
-            margin-top: 5px;
         }
 
         .badge.popular {
-            background: #f1c40f;
-            color: #000;
+            background: rgba(255, 165, 2, 0.2);
+            color: var(--warn-color);
+            border: 1px solid var(--warn-color);
             font-weight: bold;
         }
 
-        .hidden {
-            display: none !important;
+        /* Botões de Ação */
+        .action-btn {
+            background: transparent;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .action-btn.success {
+            border-color: var(--secondary-color);
+            color: var(--secondary-color);
+        }
+
+        .action-btn.success:hover {
+            background: var(--secondary-color);
+            color: black;
+        }
+
+        .action-btn.warn {
+            border-color: var(--warn-color);
+            color: var(--warn-color);
+        }
+
+        .action-btn.warn:hover {
+            background: var(--warn-color);
+            color: black;
         }
     </style>
 </head>
@@ -147,192 +308,258 @@
         <h1>My Anime List 🎬</h1>
     </header>
 
-    <div class="controls">
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('assistidos')">Assistidos</button>
-            <button class="tab-btn" onclick="switchTab('continuar')">Continuar assistindo</button>
-            <button class="tab-btn" onclick="switchTab('assistir')">Para assistir</button>
+    <div class="manager-container">
+        <div class="panel">
+            <h2>➕ Adicionar Novo Anime à Lista</h2>
+            <form class="add-form" id="animeForm" onsubmit="addNewAnime(event)">
+                <div class="form-group">
+                    <label for="newTitle">Nome do Anime</label>
+                    <input type="text" id="newTitle" placeholder="Ex: Solo Leveling" required>
+                </div>
+                
+                <div class="form-group short">
+                    <label for="newEps">Episódios</label>
+                    <input type="number" id="newEps" min="0" value="12" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="newStatus">Onde Adicionar?</label>
+                    <select id="newStatus">
+                        <option value="assistir">Para Assistir 📋</option>
+                        <option value="continuar">Continuar 🍿</option>
+                        <option value="assistidos">Concluídos ✅</option>
+                    </select>
+                </div>
+
+                <div class="form-group short">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="newPopular">
+                        <label for="newPopular" style="cursor:pointer;">É Popular? 🔥</label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">Adicionar</button>
+            </form>
         </div>
 
-        <div class="filters">
-            <label for="sortSelect">Ordenar por:</label>
-            <select id="sortSelect" onchange="applyFilters()">
-                <option value="az">Ordem Alfabética (A-Z)</option>
-                <option value="za">Ordem Alfabética (Z-A)</option>
-                <option value="ep">Mais Episódios</option>
-            </select>
+        <div class="panel">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('assistidos', this)">Concluídos</button>
+                <button class="tab-btn" onclick="switchTab('continuar', this)">Continuar</button>
+                <button class="tab-btn" onclick="switchTab('assistir', this)">Para Assistir</button>
+            </div>
 
-            <label for="filterPopular">Popularidade:</label>
-            <select id="filterPopular" onchange="applyFilters()">
-                <option value="all">Todos</option>
-                <option value="popular">Apenas Populares</option>
-            </select>
+            <div class="filters">
+                <select id="sortSelect" onchange="applyFilters()">
+                    <option value="az">Ordem Alfabética (A-Z)</option>
+                    <option value="za">Ordem Alfabética (Z-A)</option>
+                    <option value="ep">Mais Episódios</option>
+                </select>
 
-            <input type="text" id="searchBar" placeholder="Buscar anime..." oninput="applyFilters()">
+                <select id="filterPopular" onchange="applyFilters()">
+                    <option value="all">Todos os Animes</option>
+                    <option value="popular">Apenas Populares 🔥</option>
+                </select>
+
+                <input type="text" id="searchBar" class="search-input" placeholder="Pesquisar anime na lista atual..." oninput="applyFilters()">
+            </div>
         </div>
     </div>
 
     <div class="anime-grid" id="animeGrid"></div>
 
     <script>
-        // Banco de dados dos animes baseado na sua lista
-        // (Adicionei dados fictícios de episódios e tags de popularidade nos principais títulos)
+        // O Banco de dados inicial (Iniciando com ID dinâmico baseado no tamanho)
         const animeData = [
-            // --- ASSISTIDOS ---
-            { title: "Akame ga Kill", status: "assistidos", eps: 24, popular: true },
-            { title: "Buddie Daddies", status: "assistidos", eps: 12, popular: false },
-            { title: "Busou Shoujo Machiavellianism", status: "assistidos", eps: 12, popular: false },
-            { title: "Beastars", status: "assistidos", eps: 24, popular: true },
-            { title: "Cowboy Bebop", status: "assistidos", eps: 26, popular: true },
-            { title: "Castelo Animado", status: "assistidos", eps: 1, popular: true },
-            { title: "Death Note", status: "assistidos", eps: 37, popular: true },
-            { title: "Dakaretai", status: "assistidos", eps: 13, popular: false },
-            { title: "Devilman", status: "assistidos", eps: 10, popular: true },
-            { title: "Given", status: "assistidos", eps: 11, popular: false },
-            { title: "Great Pretender", status: "assistidos", eps: 23, popular: false },
-            { title: "Hellsing", status: "assistidos", eps: 13, popular: true },
-            { title: "Junjo Romântica", status: "assistidos", eps: 36, popular: false },
-            { title: "Kakegurui", status: "assistidos", eps: 24, popular: true },
-            { title: "Kotaro: Via Morar Sozinho", status: "assistidos", eps: 10, popular: false },
-            { title: "Kuroko no Basquete", status: "assistidos", eps: 75, popular: true },
-            { title: "LUPIN ZERO", status: "assistidos", eps: 6, popular: false },
-            { title: "Monsters: A Maldição do Dragão", status: "assistidos", eps: 1, popular: false },
-            { title: "Moryarti the Patriot", status: "assistidos", eps: 24, popular: false },
-            { title: "Nanatsu no Taizai", status: "assistidos", eps: 100, popular: true },
-            { title: "Naruto", status: "assistidos", eps: 720, popular: true },
-            { title: "No Game No Life", status: "assistidos", eps: 12, popular: true },
-            { title: "Parasyte - The Maxim -", status: "assistidos", eps: 24, popular: true },
-            { title: "Platinum End", status: "assistidos", eps: 24, popular: false },
-            { title: "Saint Young Men", status: "assistidos", eps: 2, popular: false },
-            { title: "Shingeki no Kyojin", status: "assistidos", eps: 88, popular: true },
-            { title: "Sk8 Infinity", status: "assistidos", eps: 12, popular: false },
-            { title: "Spriggan", status: "assistidos", eps: 6, popular: false },
-            { title: "Super Crooks", status: "assistidos", eps: 13, popular: false },
-            { title: "Ultramarine Magmell", status: "assistidos", eps: 13, popular: false },
-            { title: "Violet Evergarden", status: "assistidos", eps: 13, popular: true },
-            { title: "Yuri on Ice", status: "assistidos", eps: 12, popular: true },
-
-            // --- CONTINUAR ---
-            { title: "Boku no Hero", status: "continuar", eps: 138, popular: true },
-            { title: "Bleach", status: "continuar", eps: 366, popular: true },
-            { title: "BLUE Exorcist", status: "continuar", eps: 37, popular: true },
-            { title: "BLUE Lock", status: "continuar", eps: 24, popular: true },
-            { title: "Bungo Stray Dogs", status: "continuar", eps: 50, popular: true },
-            { title: "Chainsaw Man", status: "continuar", eps: 12, popular: true },
-            { title: "Darwin's Game", status: "continuar", eps: 11, popular: false },
-            { title: "Dr. Stone", status: "continuar", eps: 35, popular: true },
-            { title: "EDENS ZERO", status: "continuar", eps: 25, popular: false },
-            { title: "Haikyuu", status: "continuar", eps: 85, popular: true },
-            { title: "Horimiya", status: "continuar", eps: 13, popular: true },
-            { title: "Hunter x Hunter", status: "continuar", eps: 148, popular: true },
-            { title: "Jujutsu Kaisen", status: "continuar", eps: 47, popular: true },
-            { title: "Kimetsu no Yaiba", status: "continuar", eps: 55, popular: true },
-            { title: "Lookism", status: "continuar", eps: 8, popular: false },
-            { title: "Oshi no Ko", status: "continuar", eps: 11, popular: true },
-            { title: "One Piece", status: "continuar", eps: 1100, popular: true },
-            { title: "One Punch Man", status: "continuar", eps: 24, popular: true },
-            { title: "Rascal Does Not Dream of Bunny Girl Senpai", status: "continuar", eps: 13, popular: true },
-            { title: "Saiki Kusuo", status: "continuar", eps: 120, popular: true },
-            { title: "Sakamoto", status: "continuar", eps: 12, popular: false },
-            { title: "Shokugeki no Soma", status: "continuar", eps: 86, popular: true },
-            { title: "Shumatsu no Valkyrie", status: "continuar", eps: 27, popular: true },
-            { title: "Spy x Family", status: "continuar", eps: 37, popular: true },
-            { title: "Sword Art Online", status: "continuar", eps: 96, popular: true },
-            { title: "Tekken Bloodline", status: "continuar", eps: 6, popular: false },
-            { title: "The Promised Neverland", status: "continuar", eps: 23, popular: true },
-            { title: "Tokyo Ghoul", status: "continuar", eps: 48, popular: true },
-            { title: "Tokyo Revengers", status: "continuar", eps: 50, popular: true },
-            { title: "Vinland Saga", status: "continuar", eps: 48, popular: true },
-            { title: "Vanitas no Carte", status: "continuar", eps: 24, popular: false },
-            { title: "Zoom 100", status: "continuar", eps: 12, popular: false },
-
-            // --- ASSISTIR ---
-            { title: "Another", status: "assistir", eps: 12, popular: true },
-            { title: "Beelzebub", status: "assistir", eps: 60, popular: false },
-            { title: "Berserk", status: "assistir", eps: 25, popular: true },
-            { title: "Baki", status: "assistir", eps: 39, popular: true },
-            { title: "Black Clover", status: "assistir", eps: 170, popular: true },
-            { title: "BLUE Period", status: "assistir", eps: 12, popular: false },
-            { title: "Call of the Night", status: "assistir", eps: 12, popular: false },
-            { title: "Charlotte", status: "assistir", eps: 13, popular: true },
-            { title: "Classroom of the Elite", status: "assistir", eps: 38, popular: true },
-            { title: "Cyberpunk", status: "assistir", eps: 10, popular: true },
-            { title: "Danmachi: É Errado Pegar Garotas numa Montanha?", status: "assistir", eps: 59, popular: true },
-            { title: "Dandadan", status: "assistir", eps: 12, popular: true },
-            { title: "DARLING in the FRANXX", status: "assistir", eps: 24, popular: true },
-            { title: "Erased", status: "assistir", eps: 12, popular: true },
-            { title: "Fairy Tail", status: "assistir", eps: 328, popular: true },
-            { title: "Fire Force", status: "assistir", eps: 48, popular: true },
-            { title: "Fullmetal Alchemist", status: "assistir", eps: 64, popular: true },
-            { title: "Free! - Iwatobi Swim Club", status: "assistir", eps: 37, popular: true },
-            { title: "Gurren Lagann", status: "assistir", eps: 27, popular: true },
-            { title: "Hajime no Ippo", status: "assistir", eps: 75, popular: true },
-            { title: "Hell's Paradise: Jigokuroku", status: "assistir", eps: 13, popular: true },
-            { title: "Hitori no Shita - The Outcast", status: "assistir", eps: 12, popular: false },
-            { title: "HIGH CARD", status: "assistir", eps: 24, popular: false },
-            { title: "Junji Ito: Histórias Macabras do Japão", status: "assistir", eps: 12, popular: false },
-            { title: "Kaguya-sama: Love Is War", status: "assistir", eps: 36, popular: true },
-            { title: "Komi Can't Communicate", status: "assistir", eps: 24, popular: true },
-            { title: "Mahsle", status: "assistir", eps: 24, popular: true },
-            { title: "Mob Psycho 100", status: "assistir", eps: 37, popular: true },
-            { title: "Minha História de Amor com Yamada-kun Nível 999", status: "assistir", eps: 13, popular: false },
-            { title: "Mushoku Tensei: Jobless Reincarnation", status: "assistir", eps: 48, popular: true },
-            { title: "Noragami", status: "assistir", eps: 25, popular: true },
-            { title: "Orange", status: "assistir", eps: 13, popular: false },
-            { title: "Overlord", status: "assistir", eps: 52, popular: true },
-            { title: "Re:ZERO - Starting Life in Another World", status: "assistir", eps: 50, popular: true },
-            { title: "School Babysitters", status: "assistir", eps: 12, popular: false },
-            { title: "Soul Eater", status: "assistir", eps: 51, popular: true },
-            { title: "Suzume", status: "assistir", eps: 1, popular: true },
-            { title: "The Fist Slam Dunk", status: "assistir", eps: 1, popular: false },
-            { title: "The God of High School", status: "assistir", eps: 13, popular: false },
-            { title: "The Millionaire Detective - Balance: UNLIMITED", status: "assistir", eps: 11, popular: false },
-            { title: "The Rising of the Shield Hero", status: "assistir", eps: 38, popular: true },
-            { title: "The Seven Deadly Sins: Cavaleiros do Apocalipse", status: "assistir", eps: 24, popular: false },
-            { title: "To Your Eternity", status: "assistir", eps: 40, popular: true },
-            { title: "Toilet-Bound Hanako-kun", status: "assistir", eps: 12, popular: false },
-            { title: "Tonari no Seki-kun: The Master of Killing Time", status: "assistir", eps: 21, popular: false },
-            { title: "Toradora!", status: "assistir", eps: 25, popular: true },
-            { title: "UZUMAKI", status: "assistir", eps: 4, popular: true },
-            { title: "WAVE!! - Let's Go Surfing!!", status: "assistir", eps: 12, popular: false },
-            { title: "Yu Yu Hakusho", status: "assistir", eps: 112, popular: true },
-            { title: "YU-GI-OH", status: "assistir", eps: 224, popular: true },
-            { title: "Lord PF Mysterys", status: "assistir", eps: 12, popular: false },
-            { title: "Gachakuta", status: "assistir", eps: 0, popular: false }
+            { id: 1, title: "Akame ga Kill", status: "assistidos", eps: 24, popular: true },
+            { id: 2, title: "Buddie Daddies", status: "assistidos", eps: 12, popular: false },
+            { id: 3, title: "Busou Shoujo Machiavellianism", status: "assistidos", eps: 12, popular: false },
+            { id: 4, title: "Beastars", status: "assistidos", eps: 24, popular: true },
+            { id: 5, title: "Cowboy Bebop", status: "assistidos", eps: 26, popular: true },
+            { id: 6, title: "Castelo Animado", status: "assistidos", eps: 1, popular: true },
+            { id: 7, title: "Death Note", status: "assistidos", eps: 37, popular: true },
+            { id: 8, title: "Dakaretai", status: "assistidos", eps: 13, popular: false },
+            { id: 9, title: "Devilman", status: "assistidos", eps: 10, popular: true },
+            { id: 10, title: "Given", status: "assistidos", eps: 11, popular: false },
+            { id: 11, title: "Great Pretender", status: "assistidos", eps: 23, popular: false },
+            { id: 12, title: "Hellsing", status: "assistidos", eps: 13, popular: true },
+            { id: 13, title: "Junjo Romântica", status: "assistidos", eps: 36, popular: false },
+            { id: 14, title: "Kakegurui", status: "assistidos", eps: 24, popular: true },
+            { id: 15, title: "Kotaro: Via Morar Sozinho", status: "assistidos", eps: 10, popular: false },
+            { id: 16, title: "Kuroko no Basquete", status: "assistidos", eps: 75, popular: true },
+            { id: 17, title: "LUPIN ZERO", status: "assistidos", eps: 6, popular: false },
+            { id: 18, title: "Monsters: A Maldição do Dragão", status: "assistidos", eps: 1, popular: false },
+            { id: 19, title: "Moryarti the Patriot", status: "assistidos", eps: 24, popular: false },
+            { id: 20, title: "Nanatsu no Taizai", status: "assistidos", eps: 100, popular: true },
+            { id: 21, title: "Naruto", status: "assistidos", eps: 720, popular: true },
+            { id: 22, title: "No Game No Life", status: "assistidos", eps: 12, popular: true },
+            { id: 23, title: "Parasyte - The Maxim -", status: "assistidos", eps: 24, popular: true },
+            { id: 24, title: "Platinum End", status: "assistidos", eps: 24, popular: false },
+            { id: 25, title: "Saint Young Men", status: "assistidos", eps: 2, popular: false },
+            { id: 26, title: "Shingeki no Kyojin", status: "assistidos", eps: 88, popular: true },
+            { id: 27, title: "Sk8 Infinity", status: "assistidos", eps: 12, popular: false },
+            { id: 28, title: "Spriggan", status: "assistidos", eps: 6, popular: false },
+            { id: 29, title: "Super Crooks", status: "assistidos", eps: 13, popular: false },
+            { id: 30, title: "Ultramarine Magmell", status: "assistidos", eps: 13, popular: false },
+            { id: 31, title: "Violet Evergarden", status: "assistidos", eps: 13, popular: true },
+            { id: 32, title: "Yuri on Ice", status: "assistidos", eps: 12, popular: true },
+            { id: 33, title: "Boku no Hero", status: "continuar", eps: 138, popular: true },
+            { id: 34, title: "Bleach", status: "continuar", eps: 366, popular: true },
+            { id: 35, title: "BLUE Exorcist", status: "continuar", eps: 37, popular: true },
+            { id: 36, title: "BLUE Lock", status: "continuar", eps: 24, popular: true },
+            { id: 37, title: "Bungo Stray Dogs", status: "continuar", eps: 50, popular: true },
+            { id: 38, title: "Chainsaw Man", status: "continuar", eps: 12, popular: true },
+            { id: 39, title: "Darwin's Game", status: "continuar", eps: 11, popular: false },
+            { id: 40, title: "Dr. Stone", status: "continuar", eps: 35, popular: true },
+            { id: 41, title: "EDENS ZERO", status: "continuar", eps: 25, popular: false },
+            { id: 42, title: "Haikyuu", status: "continuar", eps: 85, popular: true },
+            { id: 43, title: "Horimiya", status: "continuar", eps: 13, popular: true },
+            { id: 44, title: "Hunter x Hunter", status: "continuar", eps: 148, popular: true },
+            { id: 45, title: "Jujutsu Kaisen", status: "continuar", eps: 47, popular: true },
+            { id: 46, title: "Kimetsu no Yaiba", status: "continuar", eps: 55, popular: true },
+            { id: 47, title: "Lookism", status: "continuar", eps: 8, popular: false },
+            { id: 48, title: "Oshi no Ko", status: "continuar", eps: 11, popular: true },
+            { id: 49, title: "One Piece", status: "continuar", eps: 1100, popular: true },
+            { id: 50, title: "One Punch Man", status: "continuar", eps: 24, popular: true },
+            { id: 51, title: "Rascal Does Not Dream of Bunny Girl Senpai", status: "continuar", eps: 13, popular: true },
+            { id: 52, title: "Saiki Kusuo", status: "continuar", eps: 120, popular: true },
+            { id: 53, title: "Sakamoto", status: "continuar", eps: 12, popular: false },
+            { id: 54, title: "Shokugeki no Soma", status: "continuar", eps: 86, popular: true },
+            { id: 55, title: "Shumatsu no Valkyrie", status: "continuar", eps: 27, popular: true },
+            { id: 56, title: "Spy x Family", status: "continuar", eps: 37, popular: true },
+            { id: 57, title: "Sword Art Online", status: "continuar", eps: 96, popular: true },
+            { id: 58, title: "Tekken Bloodline", status: "continuar", eps: 6, popular: false },
+            { id: 59, title: "The Promised Neverland", status: "continuar", eps: 23, popular: true },
+            { id: 60, title: "Tokyo Ghoul", status: "continuar", eps: 48, popular: true },
+            { id: 61, title: "Tokyo Revengers", status: "continuar", eps: 50, popular: true },
+            { id: 62, title: "Vinland Saga", status: "continuar", eps: 48, popular: true },
+            { id: 63, title: "Vanitas no Carte", status: "continuar", eps: 24, popular: false },
+            { id: 64, title: "Zoom 100", status: "continuar", eps: 12, popular: false },
+            { id: 65, title: "Another", status: "assistir", eps: 12, popular: true },
+            { id: 66, title: "Beelzebub", status: "assistir", eps: 60, popular: false },
+            { id: 67, title: "Berserk", status: "assistir", eps: 25, popular: true },
+            { id: 68, title: "Baki", status: "assistir", eps: 39, popular: true },
+            { id: 69, title: "Black Clover", status: "assistir", eps: 170, popular: true },
+            { id: 70, title: "BLUE Period", status: "assistir", eps: 12, popular: false },
+            { id: 71, title: "Call of the Night", status: "assistir", eps: 12, popular: false },
+            { id: 72, title: "Charlotte", status: "assistir", eps: 13, popular: true },
+            { id: 73, title: "Classroom of the Elite", status: "assistir", eps: 38, popular: true },
+            { id: 74, title: "Cyberpunk", status: "assistir", eps: 10, popular: true },
+            { id: 75, title: "Danmachi: É Errado Pegar Garotas numa Montanha?", status: "assistir", eps: 59, popular: true },
+            { id: 76, title: "Dandadan", status: "assistir", eps: 12, popular: true },
+            { id: 77, title: "DARLING in the FRANXX", status: "assistir", eps: 24, popular: true },
+            { id: 78, title: "Erased", status: "assistir", eps: 12, popular: true },
+            { id: 79, title: "Fairy Tail", status: "assistir", eps: 328, popular: true },
+            { id: 80, title: "Fire Force", status: "assistir", eps: 48, popular: true },
+            { id: 81, title: "Fullmetal Alchemist", status: "assistir", eps: 64, popular: true },
+            { id: 82, title: "Free! - Iwatobi Swim Club", status: "assistir", eps: 37, popular: true },
+            { id: 83, title: "Gurren Lagann", status: "assistir", eps: 27, popular: true },
+            { id: 84, title: "Hajime no Ippo", status: "assistir", eps: 75, popular: true },
+            { id: 85, title: "Hell's Paradise: Jigokuroku", status: "assistir", eps: 13, popular: true },
+            { id: 86, title: "Hitori no Shita - The Outcast", status: "assistir", eps: 12, popular: false },
+            { id: 87, title: "HIGH CARD", status: "assistir", eps: 24, popular: false },
+            { id: 88, title: "Junji Ito: Histórias Macabras do Japão", status: "assistir", eps: 12, popular: false },
+            { id: 89, title: "Kaguya-sama: Love Is War", status: "assistir", eps: 36, popular: true },
+            { id: 90, title: "Komi Can't Communicate", status: "assistir", eps: 24, popular: true },
+            { id: 91, title: "Mahsle", status: "assistir", eps: 24, popular: true },
+            { id: 92, title: "Mob Psycho 100", status: "assistir", eps: 37, popular: true },
+            { id: 93, title: "Minha História de Amor com Yamada-kun Nível 999", status: "assistir", eps: 13, popular: false },
+            { id: 94, title: "Mushoku Tensei: Jobless Reincarnation", status: "assistir", eps: 48, popular: true },
+            { id: 95, title: "Noragami", status: "assistir", eps: 25, popular: true },
+            { id: 96, title: "Orange", status: "assistir", eps: 13, popular: false },
+            { id: 97, title: "Overlord", status: "assistir", eps: 52, popular: true },
+            { id: 100, title: "Soul Eater", status: "assistir", eps: 51, popular: true },
+            { id: 101, title: "Suzume", status: "assistir", eps: 1, popular: true },
+            { id: 105, title: "The Rising of the Shield Hero", status: "assistir", eps: 38, popular: true },
+            { id: 110, title: "Toradora!", status: "assistir", eps: 25, popular: true },
+            { id: 113, title: "Yu Yu Hakusho", status: "assistir", eps: 112, popular: true },
+            { id: 114, title: "YU-GI-OH", status: "assistir", eps: 224, popular: true }
         ];
 
         let currentTab = 'assistidos';
 
-        // Alterna entre as abas de status
-        function switchTab(tabName) {
+        // Mudar de aba
+        function switchTab(tabName, element) {
             currentTab = tabName;
-            
-            // Atualiza classe ativa dos botões
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            
+            element.classList.add('active');
             applyFilters();
         }
 
-        // Renderiza e filtra os cards na tela
+        // Função para cadastrar novos animes dinamicamente
+        function addNewAnime(event) {
+            event.preventDefault(); // Impede o recarregamento da página
+
+            const title = document.getElementById('newTitle').value.trim();
+            const eps = parseInt(document.getElementById('newEps').value) || 0;
+            const status = document.getElementById('newStatus').value;
+            const popular = document.getElementById('newPopular').checked;
+
+            if (title === "") return;
+
+            const newAnime = {
+                id: Date.now(), // Gera um ID único baseado no timestamp
+                title: title,
+                status: status,
+                eps: eps,
+                popular: popular
+            };
+
+            animeData.push(newAnime);
+
+            // Reseta os campos do formulário
+            document.getElementById('animeForm').reset();
+            document.getElementById('newEps').value = "12"; // volta pro valor padrão
+
+            // Força a tela a mudar para a aba onde o anime foi adicionado para o usuário ver
+            const targetTabBtn = document.querySelector(`.tab-btn[onclick*="${status}"]`);
+            if (targetTabBtn) {
+                switchTab(status, targetTabBtn);
+            } else {
+                applyFilters();
+            }
+        }
+
+        // Move o anime de categoria com animação de fade-out
+        function changeAnimeStatus(animeId, newStatus, cardElement) {
+            cardElement.classList.add('removing');
+
+            setTimeout(() => {
+                const anime = animeData.find(a => a.id === animeId);
+                if (anime) {
+                    anime.status = newStatus;
+                    applyFilters();
+                }
+            }, 300);
+        }
+
+        // Gera o botão correto baseado no status do anime
+        function getActionButton(anime) {
+            if (anime.status === 'assistir') {
+                return `<button class="action-btn warn" onclick="changeAnimeStatus(${anime.id}, 'continuar', this.closest('.anime-card'))">🍿 Começar</button>`;
+            } else if (anime.status === 'continuar') {
+                return `<button class="action-btn success" onclick="changeAnimeStatus(${anime.id}, 'assistidos', this.closest('.anime-card'))">✅ Concluir</button>`;
+            } else {
+                return `<button class="action-btn" onclick="changeAnimeStatus(${anime.id}, 'continuar', this.closest('.anime-card'))">🔄 Reassistir</button>`;
+            }
+        }
+
+        // Renderiza e filtra
         function applyFilters() {
             const sortVal = document.getElementById('sortSelect').value;
             const filterPopVal = document.getElementById('filterPopular').value;
             const searchVal = document.getElementById('searchBar').value.toLowerCase();
             const grid = document.getElementById('animeGrid');
             
-            grid.innerHTML = ''; // Limpa a tela
+            grid.innerHTML = '';
 
-            // 1. Filtra por Aba, Pesquisa e Popularidade
             let filteredAnimes = animeData.filter(anime => {
                 const matchesTab = anime.status === currentTab;
                 const matchesSearch = anime.title.toLowerCase().includes(searchVal);
                 const matchesPopular = filterPopVal === 'all' || (filterPopVal === 'popular' && anime.popular);
-                
                 return matchesTab && matchesSearch && matchesPopular;
             });
 
-            // 2. Aplica Ordenação
             if (sortVal === 'az') {
                 filteredAnimes.sort((a, b) => a.title.localeCompare(b.title));
             } else if (sortVal === 'za') {
@@ -341,25 +568,26 @@
                 filteredAnimes.sort((a, b) => b.eps - a.eps);
             }
 
-            // 3. Cria os elementos HTML na tela
-            filteredAnimes.forEach(anime => {
+            filteredAnimes.forEach((anime, index) => {
                 const card = document.createElement('div');
                 card.className = 'anime-card';
+                card.style.animationDelay = `${index * 0.02}s`; // Efeito cascata veloz
                 
                 card.innerHTML = `
                     <div>
                         <div class="anime-title">${anime.title}</div>
-                        <div class="anime-info">Episódios: ${anime.eps || '??'}</div>
+                        <div class="anime-info">🎬 ${anime.eps} eps</div>
                     </div>
-                    <div>
+                    <div class="badge-container">
                         ${anime.popular ? '<span class="badge popular">🔥 Popular</span>' : '<span class="badge">Padrão</span>'}
+                        ${getActionButton(anime)}
                     </div>
                 `;
                 grid.appendChild(card);
             });
         }
 
-        // Inicializa a página mostrando a primeira aba
+        // Inicializa na aba Concluídos
         applyFilters();
     </script>
 </body>
